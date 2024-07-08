@@ -65,6 +65,23 @@ sudo yum install boost-devel
 rpm -qa | grep boost
 ```
 
+Here's the full command:
+
+```sh
+# For Debian-based:
+sudo apt update
+sudo apt install cmake
+sudo apt install build-essential
+sudo apt install libboost-all-dev
+
+# For CentOS or RHEL:
+sudo yum update
+sudo yum install cmake
+sudo yum groupinstall "Development Tools"
+sudo apt install libboost-all-dev
+
+```
+
 Generate build files:
 
 ```sh
