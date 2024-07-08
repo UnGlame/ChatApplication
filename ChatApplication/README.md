@@ -5,7 +5,7 @@
 The following dependencies are required to compile and run the program:
 
 - cmake
-- gcc, g++
+- gcc, g++ (minimally C++20)
 - boost
 
 **Ensure that TCP traffic on port 12345 is permitted between the Server and Client machines.**

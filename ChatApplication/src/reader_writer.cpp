@@ -5,6 +5,8 @@
 #include <iostream>
 
 namespace chat {
+using namespace std::string_literals;
+
 enum class Tag : uint8_t
 {
     ack,
@@ -67,7 +69,7 @@ void ReaderWriter::read()
             case Tag::text: {
                 std::cout << "Received text: " << data_str << std::endl;
                 std::lock_guard lock(ack_mutex_);
-                ack_msgs_.push(data_str);
+                ack_msgs_.push("message received"s);
                 break;
             }
             default:
