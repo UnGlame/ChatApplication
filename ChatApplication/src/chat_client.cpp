@@ -21,16 +21,16 @@ void Client::run(std::string_view server_ip)
         boost::asio::connect(socket, endpoints);
 
         std::cout << "Connected to server.\n"
-                  << "To send a chat message, type your message and press enter. "
-                  << "The client will receive the message and send an "
-                     "acknowledgement back to you (the client). "
-                  << "You will receive the ack and the Round-Trip Time (RTT) will "
-                     "be displayed. "
-                  << "Likewise, if you receive a chat message, you (the client) "
-                     "will send an acknowledgement back to the server."
+                  << "Guide:\n"
+                  << "To send a chat message, type your message and press enter.\n"
+                  << "The server will receive the message and send an acknowledgement back to you (the client).\n"
+                  << "You will receive the ack and the Round Trip Time (RTT) will be displayed.\n"
+                  << "Likewise, if you receive a chat message, you (the client) will send an acknowledgement back to "
+                     "the server."
                   << std::endl;
 
         ReaderWriter reader_writer{std::move(socket), context};
+        std::thread(&ReaderWriter::read_input, &reader_writer).detach();
         std::thread reader_thread(&ReaderWriter::read, &reader_writer);
         std::thread writer_thread(&ReaderWriter::write, &reader_writer);
 

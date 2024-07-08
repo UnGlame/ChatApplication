@@ -14,9 +14,7 @@ enum class Tag : uint8_t
 ReaderWriter::ReaderWriter(boost::asio::ip::tcp::socket socket, boost::asio::io_context& io_context)
     : socket_{std::move(socket)}
     , connected_{true}
-{
-    std::thread(&ReaderWriter::read_input, this).detach();
-}
+{}
 
 void ReaderWriter::read_input()
 {
@@ -25,7 +23,7 @@ void ReaderWriter::read_input()
         std::getline(std::cin, input);
         {
             std::lock_guard lock{input_mutex_};
-            input_msg_ = std::make_optional(input);
+            input_msgs_.push(input);
         }
     }
 }
@@ -69,7 +67,7 @@ void ReaderWriter::read()
             case Tag::text: {
                 std::cout << "Received text: " << data_str << std::endl;
                 std::lock_guard lock(ack_mutex_);
-                ack_msg_ = data_str;
+                ack_msgs_.push(data_str);
                 break;
             }
             default:
@@ -89,12 +87,14 @@ void ReaderWriter::write()
 void ReaderWriter::try_write_ack()
 {
     std::lock_guard lock(ack_mutex_);
-    if (!ack_msg_.has_value()) {
+    if (ack_msgs_.empty()) {
         return;
     }
     boost::system::error_code ec;
     const auto tag = static_cast<uint8_t>(Tag::ack);
-    uint32_t length = ack_msg_->size();
+    const auto ack_msg = ack_msgs_.front();
+    ack_msgs_.pop();
+    uint32_t length = ack_msg.size();
 
     // Send ack tag
     boost::asio::write(socket_, boost::asio::buffer(&tag, sizeof(tag)), ec);
@@ -107,23 +107,24 @@ void ReaderWriter::try_write_ack()
         return;
     }
     // Send ack message
-    boost::asio::write(socket_, boost::asio::buffer(ack_msg_.value()), ec);
+    boost::asio::write(socket_, boost::asio::buffer(ack_msg), ec);
     if (!handle_error(ec)) {
         return;
     }
-    ack_msg_.reset();
 }
 
 void ReaderWriter::try_write_msg()
 {
     std::lock_guard lock{input_mutex_};
-    if (!input_msg_.has_value()) {
+    if (input_msgs_.empty()) {
         return;
     }
     boost::system::error_code ec;
-    uint32_t length = input_msg_->size();
     const auto tag = static_cast<uint8_t>(Tag::text);
-    std::vector<char> data(input_msg_->begin(), input_msg_->end());
+    const auto msg = input_msgs_.front();
+    input_msgs_.pop();
+    uint32_t length = msg.size();
+    std::vector<char> data(msg.begin(), msg.end());
 
     // Record start time before writing to socket
     rtt_start_ = std::chrono::high_resolution_clock::now();
@@ -143,7 +144,6 @@ void ReaderWriter::try_write_msg()
     if (!handle_error(ec)) {
         return;
     }
-    input_msg_.reset();
 }
 
 bool ReaderWriter::handle_error(boost::system::error_code error)

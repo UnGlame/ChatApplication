@@ -23,18 +23,19 @@ void Server::run()
             tcp::socket socket(context);
             acceptor.accept(socket);
 
-            std::cout << "Connected to client.\n"
-                      << "To send a chat message, type your message and press enter. "
-                      << "The client will receive the message and send an "
-                         "acknowledgement back to you (the server). "
-                      << "You will receive the ack and the Round-Trip Time (RTT) "
-                         "will be displayed. "
-                      << "Likewise, if you receive a chat message, you (the server) "
-                         "will send an acknowledgement back to the client."
-                      << std::endl;
+            std::cout
+                << "Connected to client.\n"
+                << "Guide:\n"
+                << "To send a chat message, type your message and press enter.\n"
+                << "The client will receive the message and send an acknowledgement back to you (the server).\n"
+                << "You will receive the ack and the Round Trip Time (RTT) will be displayed.\n"
+                << "Likewise, if you receive a chat message, you (the server) will send an acknowledgement back to "
+                   "the client."
+                << std::endl;
 
             // Spawn threads to read-write messages to/from client
             ReaderWriter reader_writer{std::move(socket), context};
+            std::thread(&ReaderWriter::read_input, &reader_writer).detach();
             std::thread reader_thread(&ReaderWriter::read, &reader_writer);
             std::thread writer_thread(&ReaderWriter::write, &reader_writer);
 
