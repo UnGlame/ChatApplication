@@ -28,6 +28,11 @@
           "name": "Boost_INCLUDE_DIR",
           "value": "/usr/include/",
           "type": "PATH"
+        },
+        {
+          "name": "CMAKE_INSTALL_PREFIX",
+          "value": "/mnt/c/Users/limjh/OneDrive/Documents/GitHub/ChatApplication/out/install/WSL-GCC-Debug",
+          "type": "PATH"
         }
       ]
     }
